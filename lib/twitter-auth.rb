@@ -3,8 +3,16 @@ require "cgi"
 require 'base64'
 require 'openssl'
 require 'net/https'
-require 'nokogiri'
 module TwitterAuth
+  
+  def self.authorize(callback, consumer_key, secret, base_uri)
+    response, data = request_token(callback, consumer_key, secret, base_uri)
+    parsed_data = parse_response(data)
+    authorization_url = user_authorization_url(parsed_data['oauth_token'])
+    puts authorization_url
+    authorization_url
+  end
+  
   def self.escape(value) 
       CGI.escape(value.to_s).gsub("%7E", '~').gsub("+", "%20") 
     end
@@ -47,11 +55,9 @@ module TwitterAuth
     headers = {"Authorization" => "OAuth " + params.join(', ')}
     request = Net::HTTP::Post.new(uri.request_uri, headers)
     response, data = http.request(request)
-    parsed_data = parse_response(data)
-    user_authorization_url(parsed_data['oauth_token'])
   end
   
   def self.user_authorization_url(token)
-    puts "http://api.twitter.com/oauth/authorize?oauth_token=" + token
+    "http://api.twitter.com/oauth/authorize?oauth_token=" + token
   end
 end
